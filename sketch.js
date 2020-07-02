@@ -1,38 +1,67 @@
-const Engine = Matter.Engine;
-const World= Matter.World;
-const Bodies = Matter.Bodies;
-
-var engine, world;
-var ground, ball;
+var database;
+//var name,score,HK;
+var input, button;
+var score = 0;
+var clickButton;
 
 function setup(){
-    var canvas = createCanvas(400,400);
-    engine = Engine.create();
-    world = engine.world;
+    var canvas = createCanvas(200,200);
+  //  canvas.parent("game");
+    database = firebase.database();
+   // console.log(firebase);
 
-    var ground_options ={
-        isStatic: true
-    }
-
-    ground = Bodies.rectangle(200,390,200,20,ground_options);
-    World.add(world,ground);
-
-    var ball_options ={
-        restitution: 1.0
-    }
-
-    ball = Bodies.circle(200,100,20, ball_options);
-    World.add(world,ball);
-
-    console.log(ground);
+    clickButton = createButton("Click Me!!");
+    input = createInput("name");
+    button = createButton("push to DB!!");
+    button.mousePressed(submitInDb);
+    clickButton.mousePressed(function(){
+       
+        textSize(50);
+         text(score,50,50);
+         score++;
+    }) 
+   retrieve();
 }
 
 function draw(){
     background(0);
-    Engine.update(engine);
-    rectMode(CENTER);
-    rect(ground.position.x,ground.position.y,400,20);
+    
+  //  console.log(score);
+}
+function submitInDb(){
+    var data ={
+        input:input.value(),
+        score:score
+    }
+  //  console.log(data);
+    var db = database.ref("scores");
+    
+    db.push(data)
+}
+function retrieve(){
 
-    ellipseMode(RADIUS);
-    ellipse(ball.position.x, ball.position.y, 20, 20);
+    
+    database.ref("scores").on("value",function(data){
+    
+        var list = selectAll(".list");
+        for (var i=0;i<list.length;i++){
+             list[i].remove();
+        }
+    
+        scores=data.val();
+       // console.log(scores);
+       var keys = Object.keys(scores);
+       // console.log(keys);
+        for(var i =0;i<keys.length;i++){
+            var k = keys[i];
+            var initials = scores[k].input;
+            var score = scores[k].score;
+           // console.log(initials,score);
+           var li= createElement("li",initials +": "+score);
+        //   li.position(10,400);
+           li.class('list');
+      // li.parent('scorelist');
+        }
+        
+    })
 }
